@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Voyageur — Curated Travel Experiences</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{
+  --bg:#07090f;
+  --surface:#0f1118;
+  --surface2:#181c28;
+  --surface3:#1e2235;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.12);
+  --text:#f4efe8;
+  --muted:#7b8099;
+  --muted2:#a8adc0;
+  --gold:#d4a853;
+  --gold2:#f0cc7a;
+  --gold-dim:rgba(212,168,83,0.12);
+  --teal:#38c9b0;
+  --teal-dim:rgba(56,201,176,0.1);
+  --coral:#e06060;
+  --grad-gold:linear-gradient(135deg,#c9973e,#e8c56e,#c9973e);
+  --grad-teal:linear-gradient(135deg,#2bb89e,#52d9c0);
+  --r:14px;
+  --r2:20px;
+  --shadow:0 20px 60px rgba(0,0,0,0.6);
+  --shadow2:0 4px 20px rgba(0,0,0,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none}
+ 
+/* ── CUSTOM CURSOR ── */
+#cursor{position:fixed;width:10px;height:10px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(212,168,83,.4);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:transform .12s ease,width .3s,height .3s,opacity .3s}
+body:hover #cursor{opacity:1}
+ 
+/* ── NOISE OVERLAY ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:1;opacity:.4}
+ 
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
+ 
+em{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold)}
+a{text-decoration:none;color:inherit;cursor:none}
+ 
+/* ── NAVBAR ── */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.5rem 5rem;
+  background:transparent;
+  transition:all .5s cubic-bezier(.4,0,.2,1);
+}
+.navbar.scrolled{
+  padding:1rem 5rem;
+  background:rgba(7,9,15,.92);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.7rem;font-weight:600;
+  color:var(--gold);
+  display:flex;align-items:center;gap:.5rem;
+  letter-spacing:1px;
+}
+.brand-star{font-size:1rem;animation:spin 12s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nav-links{list-style:none;display:flex;align-items:center;gap:2.5rem}
+.nav-link{
+  font-size:.85rem;font-weight:500;color:var(--muted2);letter-spacing:.5px;
+  transition:color .3s;position:relative;padding:.3rem 0;
+}
+.nav-link::after{
+  content:'';position:absolute;bottom:-3px;left:0;right:0;
+  height:1px;background:var(--gold);transform:scaleX(0);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);transform-origin:left;
+}
+.nav-link:hover,.nav-link.active{color:var(--text)}
+.nav-link:hover::after,.nav-link.active::after{transform:scaleX(1)}
+.btn-nav{
+  background:var(--grad-gold) !important;color:#07090f !important;
+  padding:.55rem 1.6rem !important;border-radius:100px;
+  font-weight:600;letter-spacing:.5px;
+  box-shadow:0 4px 20px rgba(212,168,83,.25);
+  transition:transform .3s,box-shadow .3s !important;
+}
+.btn-nav:hover{transform:translateY(-2px) !important;box-shadow:0 8px 30px rgba(212,168,83,.4) !important}
+.btn-nav::after{display:none !important}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:.3rem}
+.hamburger span{display:block;width:22px;height:1.5px;background:var(--text);transition:all .3s}
+ 
+/* ── HERO ── */
+.hero{height:100vh;position:relative;overflow:hidden}
+.slider-track{display:flex;height:100%;transition:transform .9s cubic-bezier(.77,0,.175,1)}
+.slide{
+  min-width:100%;height:100%;
+  background-size:cover;background-position:center;
+  position:relative;display:flex;align-items:center;
+}
+.slide-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(105deg,rgba(7,9,15,.85) 25%,rgba(7,9,15,.3) 70%,rgba(7,9,15,.1));
+}
+.slide-content{
+  position:relative;z-index:2;
+  padding:0 5rem;max-width:750px;
+}
+.slide-tag{
+  font-size:.75rem;font-weight:500;letter-spacing:5px;
+  text-transform:uppercase;color:var(--gold);
+  margin-bottom:1.4rem;display:flex;align-items:center;gap:.8rem;
+  opacity:0;animation:fadeSlide .8s .3s ease both;
+}
+.slide-tag::before{content:'';display:inline-block;width:40px;height:1px;background:var(--gold)}
+.slide-content h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3rem,7vw,6rem);line-height:1.0;
+  font-weight:600;margin-bottom:1.4rem;
+  opacity:0;animation:fadeSlide .8s .5s ease both;
+}
+.slide-sub{
+  font-size:1rem;color:rgba(244,239,232,.65);
+  margin-bottom:2.5rem;font-weight:300;letter-spacing:.3px;
+  opacity:0;animation:fadeSlide .8s .7s ease both;
+}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.btn-hero{
+  background:transparent;border:1px solid rgba(212,168,83,.5);
+  color:var(--gold);padding:1rem 2.8rem;
+  font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:600;
+  border-radius:100px;cursor:none;letter-spacing:1px;
+  transition:all .4s;position:relative;overflow:hidden;
+  opacity:0;animation:fadeSlide .8s .9s ease both;
+}
+.btn-hero::before{
+  content:'';position:absolute;inset:0;
+  background:var(--grad-gold);opacity:0;transition:opacity .4s;
+}
+.btn-hero:hover{color:#07090f;border-color:transparent;transform:translateY(-3px);box-shadow:0 12px 35px rgba(212,168,83,.35)}
+.btn-hero:hover::before{opacity:1}
+.btn-hero span{position:relative;z-index:1}
+.slider-dots{position:absolute;bottom:3rem;left:5rem;display:flex;gap:.8rem;z-index:10}
+.dot{
+  width:6px;height:6px;border-radius:100px;
+  background:rgba(255,255,255,.25);cursor:none;
+  transition:all .4s;
+}
+.dot.active{width:32px;background:var(--gold)}
+.slider-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.06);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);
+  width:52px;height:52px;border-radius:50%;font-size:1.5rem;
+  cursor:none;z-index:10;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;
+}
+.slider-arrow.left{left:2rem}
+.slider-arrow.right{right:2rem}
+.slider-arrow:hover{background:var(--gold);color:#07090f;border-color:var(--gold)}
+ 
+/* Scroll indicator */
+.scroll-indicator{
+  position:absolute;bottom:2.5rem;right:3rem;z-index:10;
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+}
+.scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3;transform:scaleY(1)}50%{opacity:1;transform:scaleY(1.1)}}
+ 
+/* ── SEARCH ── */
+.search-section{
+  display:flex;justify-content:center;
+  padding:0 2rem;margin-top:-3.5rem;position:relative;z-index:50;
+}
+.search-card{
+  background:rgba(15,17,24,.95);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  display:flex;align-items:flex-end;gap:1.5rem;
+  padding:2rem 2.5rem;
+  box-shadow:0 30px 80px rgba(0,0,0,.7);
+  backdrop-filter:blur(20px);
+  flex-wrap:wrap;
+  max-width:960px;width:100%;
+}
+.search-field{flex:1;min-width:160px}
+.search-field label{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.72rem;color:var(--gold);font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:.6rem;
+}
+.search-field input{
+  width:100%;padding:.85rem 1.1rem;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:.9rem;
+  transition:all .3s;
+}
+.search-field input:focus{outline:none;border-color:var(--gold);background:var(--surface3)}
+.btn-search{
+  background:var(--grad-gold);color:#07090f;
+  border:none;padding:.85rem 2.2rem;
+  border-radius:10px;font-size:.9rem;font-weight:700;
+  cursor:none;transition:all .3s;white-space:nowrap;
+  font-family:'Outfit',sans-serif;letter-spacing:.5px;
+  box-shadow:0 6px 24px rgba(212,168,83,.3);
+}
+.btn-search:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(212,168,83,.45)}
+ 
+/* ── STATS ── */
+.stats-bar{
+  display:flex;justify-content:center;flex-wrap:wrap;gap:0;
+  margin:5rem auto;max-width:880px;
+  border:1px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;position:relative;
+}
+.stats-bar::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,168,83,.04),transparent,rgba(56,201,176,.04));
+}
+.stat{
+  flex:1;min-width:150px;
+  display:flex;flex-direction:column;align-items:center;
+  padding:2.5rem 1.5rem;border-right:1px solid var(--border);
+  position:relative;transition:background .4s;
+}
+.stat:last-child{border-right:none}
+.stat:hover{background:var(--surface2)}
+.stat-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.5rem;font-weight:700;color:var(--gold);
+  line-height:1;
+}
+.stat-label{font-size:.78rem;color:var(--muted);margin-top:.4rem;letter-spacing:.5px}
+ 
+/* ── SECTION ── */
+.section-wrap{max-width:1240px;margin:0 auto;padding:5rem 2rem}
+.section-header{text-align:center;margin-bottom:3.5rem}
+.section-tag{
+  font-size:.72rem;letter-spacing:4px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1rem;display:block;
+}
+.section-header h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,4vw,3.2rem);font-weight:600;
+}
+ 
+/* ── TRIPS GRID ── */
+.trips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:2rem}
+.trip-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;
+  transition:transform .4s cubic-bezier(.4,0,.2,1),box-shadow .4s,border-color .4s;
+  cursor:none;position:relative;
+}
+.trip-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,168,83,.06),transparent);
+  opacity:0;transition:opacity .4s;border-radius:var(--r2);pointer-events:none;
+}
+.trip-card:hover{transform:translateY(-10px);box-shadow:0 32px 70px rgba(0,0,0,.6);border-color:rgba(212,168,83,.25)}
+.trip-card:hover::after{opacity:1}
+.trip-img{position:relative;height:240px;overflow:hidden}
+.trip-img img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.trip-img::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:60%;
+  background:linear-gradient(to top,rgba(7,9,15,.9),transparent);
+}
+.trip-card:hover .trip-img img{transform:scale(1.1)}
+.trip-badge{
+  position:absolute;top:1.2rem;left:1.2rem;z-index:2;
+  background:var(--gold);color:#07090f;
+  font-size:.68rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:.3rem .9rem;border-radius:100px;
+}
+.trip-price-overlay{
+  position:absolute;bottom:1rem;right:1rem;z-index:2;
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.4rem;font-weight:700;color:var(--gold2);
+}
+.trip-body{padding:1.4rem 1.6rem 1.6rem}
+.trip-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.35rem;font-weight:600;margin-bottom:.4rem;
+}
+.trip-duration{font-size:.78rem;color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:.4rem}
+.trip-duration i{color:var(--gold);font-size:.75rem}
+.trip-desc{font-size:.84rem;color:var(--muted2);line-height:1.7;margin-bottom:1.4rem}
+.trip-footer{display:flex;align-items:center;justify-content:space-between}
+.trip-rating{font-size:.78rem;color:var(--gold)}
+.btn-book{
+  background:transparent;border:1px solid rgba(212,168,83,.4);
+  color:var(--gold);padding:.55rem 1.4rem;
+  border-radius:100px;font-size:.8rem;font-weight:600;
+  cursor:none;font-family:'Outfit',sans-serif;
+  transition:all .3s;letter-spacing:.5px;
+  position:relative;overflow:hidden;
+}
+.btn-book::before{
+  content:'';position:absolute;inset:0;
+  background:var(--grad-gold);opacity:0;transition:opacity .3s;
+}
+.btn-book:hover{color:#07090f;border-color:transparent}
+.btn-book:hover::before{opacity:1}
+.btn-book span{position:relative;z-index:1}
+ 
+/* ── FILTER BAR ── */
+.filter-bar{
+  display:flex;flex-wrap:wrap;gap:.6rem;
+  margin-bottom:3rem;justify-content:center;
+}
+.filter-btn{
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--muted2);padding:.55rem 1.6rem;
+  border-radius:100px;font-family:'Outfit',sans-serif;
+  font-size:.82rem;cursor:none;transition:all .3s;
+}
+.filter-btn:hover,.filter-btn.active{
+  background:var(--grad-gold);border-color:transparent;
+  color:#07090f;font-weight:600;
+  box-shadow:0 4px 16px rgba(212,168,83,.3);
+}
+.center-btn{text-align:center;margin-top:3.5rem}
+ 
+/* ── BUTTONS ── */
+.btn-primary{
+  background:var(--grad-gold);color:#07090f;
+  border:none;padding:.9rem 2.2rem;
+  border-radius:100px;font-family:'Outfit',sans-serif;
+  font-size:.9rem;font-weight:700;
+  cursor:none;transition:all .3s;letter-spacing:.5px;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(212,168,83,.4)}
+.btn-primary.full{width:100%;border-radius:12px;padding:1rem;font-size:.95rem}
+.btn-primary.small{padding:.5rem 1.2rem;font-size:.78rem;border-radius:8px}
+.btn-outline{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text);padding:.9rem 2.5rem;
+  border-radius:100px;font-family:'Outfit',sans-serif;
+  font-size:.9rem;font-weight:500;cursor:none;transition:all .3s;
+}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-outline.small{padding:.45rem 1rem;font-size:.78rem;border-radius:8px}
+ 
+/* ── TESTIMONIALS ── */
+.testimonials-section{
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:7rem 2rem;
+  position:relative;overflow:hidden;
+}
+.testimonials-section::before{
+  content:'';position:absolute;top:-100px;left:-100px;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(212,168,83,.06),transparent 70%);
+  pointer-events:none;
+}
+.testimonials-section::after{
+  content:'';position:absolute;bottom:-100px;right:-100px;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(56,201,176,.05),transparent 70%);
+  pointer-events:none;
+}
+.testimonials-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:1.5rem;max-width:1100px;margin:0 auto;
+}
+.testimonial-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:2.2rem;
+  transition:transform .4s,border-color .4s;
+  position:relative;
+}
+.testimonial-card::before{
+  content:'\201C';
+  font-family:'Cormorant Garamond',serif;
+  font-size:5rem;line-height:1;
+  color:var(--gold);opacity:.15;
+  position:absolute;top:.5rem;left:1.5rem;
+}
+.testimonial-card:hover{transform:translateY(-6px);border-color:rgba(212,168,83,.2)}
+.testimonial-card.featured{
+  border-color:rgba(212,168,83,.3);
+  background:linear-gradient(135deg,rgba(212,168,83,.06),rgba(15,17,24,.9));
+  transform:scale(1.03);
+}
+.testimonial-card.featured:hover{transform:scale(1.03) translateY(-6px)}
+.stars{color:var(--gold);font-size:1rem;margin-bottom:1.2rem;letter-spacing:2px}
+.testimonial-card p{color:var(--muted2);line-height:1.8;font-size:.88rem;margin-bottom:1.8rem;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1rem}
+.reviewer{display:flex;align-items:center;gap:1rem}
+.reviewer img{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--gold);object-fit:cover;filter:grayscale(20%)}
+.reviewer strong{display:block;font-size:.88rem}
+.reviewer span{font-size:.75rem;color:var(--muted)}
+ 
+/* ── PAGE HERO ── */
+.page-hero{
+  height:420px;background-size:cover;background-position:center;
+  position:relative;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding-top:80px;
+}
+.page-hero-overlay{position:absolute;inset:0;background:rgba(7,9,15,.65)}
+.page-hero h1{
+  position:relative;z-index:2;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,5vw,4rem);font-weight:600;
+}
+.page-hero p{position:relative;z-index:2;color:rgba(255,255,255,.65);font-size:.95rem;margin-top:.8rem}
+.page-hero-line{
+  position:relative;z-index:2;
+  width:60px;height:1px;background:var(--gold);margin:1.5rem auto 0;
+}
+ 
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(7,9,15,.85);backdrop-filter:blur(12px);
+  display:none;align-items:center;justify-content:center;padding:2rem;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:24px;padding:3rem;width:100%;max-width:640px;
+  position:relative;animation:fadeUp .4s cubic-bezier(.34,1.56,.64,1);
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+.modal-close{
+  position:absolute;top:1.5rem;right:1.5rem;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted);width:38px;height:38px;border-radius:50%;
+  font-size:.95rem;cursor:none;transition:all .3s;
+}
+.modal-close:hover{background:var(--coral);color:white;border-color:var(--coral)}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:2rem;margin-bottom:.4rem}
+.modal-dest{color:var(--teal);font-size:.82rem;margin-bottom:2rem;letter-spacing:.5px}
+.booking-form .form-row{display:flex;gap:1rem}
+.form-group{flex:1;margin-bottom:1.3rem}
+.form-group label{
+  display:block;font-size:.72rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.5rem;
+}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;padding:.85rem 1.1rem;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:.9rem;
+  transition:all .3s;
+}
+.form-group input:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--gold);background:var(--surface3);
+}
+.form-group textarea{resize:vertical}
+ 
+/* Success Popup */
+.success-popup{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.85);
+  z-index:3000;
+  background:var(--surface);border:1px solid rgba(212,168,83,.3);
+  border-radius:28px;padding:3.5rem 3rem;text-align:center;
+  max-width:420px;width:90%;
+  opacity:0;pointer-events:none;
+  transition:all .5s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 40px 100px rgba(0,0,0,.7);
+}
+.success-popup.show{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1)}
+.success-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--grad-teal);color:#07090f;
+  font-size:1.8rem;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.8rem;font-weight:700;
+}
+.success-popup h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:.8rem}
+.success-popup p{color:var(--muted2);font-size:.88rem;margin-bottom:2rem;line-height:1.7}
+ 
+/* ── ABOUT ── */
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:5rem;align-items:center;
+}
+.about-text h2{font-family:'Cormorant Garamond',serif;font-size:2.8rem;margin-bottom:1.5rem;line-height:1.15}
+.about-text p{color:var(--muted2);line-height:1.85;margin-bottom:1rem;font-size:.9rem}
+.about-features{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+.about-feat{
+  display:flex;align-items:center;gap:.8rem;
+  font-size:.84rem;color:var(--text);
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:.9rem 1rem;
+  transition:border-color .3s;
+}
+.about-feat:hover{border-color:rgba(212,168,83,.3)}
+.about-feat i{color:var(--gold);font-size:.95rem;width:16px;text-align:center}
+.about-image img{border-radius:24px;height:520px;width:100%;object-fit:cover;box-shadow:var(--shadow);filter:grayscale(10%) contrast(1.05)}
+ 
+/* ── CONTACT ── */
+.contact-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:5rem;align-items:start}
+.contact-info h2{font-family:'Cormorant Garamond',serif;font-size:2.5rem;margin-bottom:1.2rem}
+.contact-info>p{color:var(--muted2);line-height:1.8;margin-bottom:2.5rem;font-size:.9rem}
+.contact-item{display:flex;gap:1.2rem;margin-bottom:1.8rem;align-items:flex-start}
+.contact-icon{
+  width:44px;height:44px;border-radius:10px;
+  background:var(--gold-dim);border:1px solid rgba(212,168,83,.2);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gold);font-size:.95rem;flex-shrink:0;
+}
+.contact-item strong{display:block;font-size:.82rem;margin-bottom:.3rem;letter-spacing:.5px}
+.contact-item p{color:var(--muted2);font-size:.84rem;line-height:1.6}
+.contact-form{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:24px;padding:2.8rem;
+}
+.contact-form h3{font-family:'Cormorant Garamond',serif;font-size:1.6rem;margin-bottom:2rem}
+ 
+/* ── AUTH ── */
+.auth-bg{
+  min-height:100vh;
+  background:radial-gradient(ellipse at 20% 20%,rgba(212,168,83,.06) 0%,transparent 55%),
+            radial-gradient(ellipse at 80% 80%,rgba(56,201,176,.05) 0%,transparent 55%),
+            var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:6rem 2rem;
+}
+.auth-container{
+  width:100%;max-width:540px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:28px;padding:3rem;box-shadow:var(--shadow);
+}
+.auth-tabs{
+  display:flex;background:var(--bg);border-radius:12px;
+  padding:4px;margin-bottom:2.5rem;border:1px solid var(--border);
+}
+.auth-tab{
+  flex:1;padding:.7rem;background:none;border:none;
+  color:var(--muted);font-family:'Outfit',sans-serif;
+  font-size:.88rem;font-weight:500;cursor:none;
+  border-radius:10px;transition:all .3s;
+}
+.auth-tab.active{background:var(--surface2);color:var(--text);font-weight:600}
+.auth-form{display:none}
+.auth-form.active{display:block}
+.auth-logo{
+  font-family:'Cormorant Garamond',serif;font-size:1.8rem;
+  color:var(--gold);text-align:center;margin-bottom:1.2rem;letter-spacing:1px;
+}
+.auth-form h2{font-family:'Cormorant Garamond',serif;font-size:2rem;text-align:center;margin-bottom:.5rem}
+.auth-sub{text-align:center;color:var(--muted);font-size:.84rem;margin-bottom:2rem}
+.input-icon{position:relative}
+.input-icon i{position:absolute;left:1.1rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem}
+.input-icon input{padding-left:2.8rem !important}
+.form-check{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.5rem;
+}
+.form-check label{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--muted);cursor:none}
+.form-check a{font-size:.8rem;color:var(--gold)}
+.auth-switch{text-align:center;font-size:.82rem;color:var(--muted);margin-top:1.2rem}
+.auth-switch a{color:var(--gold);cursor:none;font-weight:600}
+ 
+/* ── ADMIN ── */
+.admin-layout{display:flex;min-height:100vh;padding-top:0}
+.admin-sidebar{
+  width:268px;background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:500;
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.admin-brand{
+  font-family:'Cormorant Garamond',serif;font-size:1.4rem;
+  color:var(--gold);padding:2rem 1.8rem;
+  border-bottom:1px solid var(--border);letter-spacing:.5px;
+}
+.admin-brand span{font-size:.65rem;color:var(--muted);margin-left:.5rem;vertical-align:super;letter-spacing:2px;text-transform:uppercase}
+.admin-nav{flex:1;padding:1.2rem 1rem;display:flex;flex-direction:column;gap:.3rem}
+.admin-link{
+  display:flex;align-items:center;gap:.9rem;
+  padding:.85rem 1.1rem;border-radius:10px;
+  font-size:.86rem;color:var(--muted);font-weight:500;
+  transition:all .3s;cursor:none;
+}
+.admin-link:hover{background:var(--surface2);color:var(--text)}
+.admin-link.active{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,83,.15)}
+.admin-link i{width:18px;text-align:center;font-size:.9rem}
+.admin-sidebar-footer{
+  padding:1.4rem 1.8rem;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:.9rem;
+}
+.admin-sidebar-footer img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(212,168,83,.3)}
+.admin-sidebar-footer strong{display:block;font-size:.85rem}
+.admin-sidebar-footer span{font-size:.72rem;color:var(--muted)}
+.admin-main{flex:1;margin-left:268px}
+.admin-topbar{
+  display:flex;align-items:center;gap:1rem;
+  padding:1.3rem 2rem;background:var(--surface);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+}
+.admin-topbar h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;flex:1}
+.admin-actions{display:flex;align-items:center;gap:.8rem}
+.btn-icon{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted);width:40px;height:40px;border-radius:10px;
+  cursor:none;position:relative;font-size:.88rem;transition:all .3s;
+}
+.btn-icon:hover{border-color:var(--gold);color:var(--gold)}
+.btn-icon .badge{
+  position:absolute;top:-4px;right:-4px;
+  background:var(--coral);color:white;font-size:.6rem;
+  width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.sidebar-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:none}
+.admin-tab{display:none;padding:2.5rem 2rem}
+.admin-tab.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:2.5rem}
+.stat-card{
+  border-radius:var(--r2);padding:1.6rem;
+  display:flex;align-items:center;gap:1.3rem;
+  position:relative;overflow:hidden;border:1px solid var(--border);
+}
+.stat-card.teal{background:var(--teal-dim)}
+.stat-card.teal i{color:var(--teal)}
+.stat-card.amber{background:var(--gold-dim)}
+.stat-card.amber i{color:var(--gold)}
+.stat-card.rose{background:rgba(224,96,96,.08)}
+.stat-card.rose i{color:var(--coral)}
+.stat-card.indigo{background:rgba(99,102,241,.08)}
+.stat-card.indigo i{color:#818cf8}
+.stat-card i{font-size:1.8rem}
+.s-num{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:700;display:block}
+.s-label{font-size:.75rem;color:var(--muted)}
+.s-trend{position:absolute;bottom:.9rem;right:1rem;font-size:.7rem;color:#4ade80}
+.s-trend.down{color:var(--coral)}
+.admin-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;margin-bottom:1.5rem;
+}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.3rem 1.8rem;border-bottom:1px solid var(--border);
+}
+.card-header h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem}
+.table-wrap{overflow-x:auto}
+.admin-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.admin-table th{
+  text-align:left;padding:1rem 1.4rem;
+  font-size:.7rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.5px;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
+.admin-table td{padding:1rem 1.4rem;border-bottom:1px solid var(--border);color:var(--muted2)}
+.admin-table tbody tr:hover td{background:var(--surface2)}
+.badge-status{
+  padding:.3rem .9rem;border-radius:100px;
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+}
+.badge-status.confirmed{background:rgba(74,222,128,.1);color:#4ade80}
+.badge-status.pending{background:rgba(251,191,36,.1);color:#fbbf24}
+.badge-status.cancelled{background:rgba(224,96,96,.1);color:var(--coral)}
+.bookings-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+.booking-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);padding:1.6rem;transition:border-color .3s;cursor:none;
+}
+.booking-card:hover{border-color:rgba(212,168,83,.25)}
+.booking-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.booking-id{font-size:.72rem;color:var(--muted)}
+.booking-name{font-weight:600;margin:.3rem 0;font-size:.9rem}
+.booking-dest{font-size:.82rem;color:var(--teal)}
+.booking-info{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:.4rem}
+.booking-info i{color:var(--gold);margin-right:.4rem}
+ 
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:9999;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:14px;padding:1rem 1.6rem;
+  font-size:.84rem;color:var(--text);
+  transform:translateY(120%);opacity:0;
+  transition:all .45s cubic-bezier(.34,1.56,.64,1);
+  max-width:340px;box-shadow:var(--shadow2);
+  border-left:3px solid var(--gold);
+}
+.toast.show{transform:translateY(0);opacity:1}
+ 
+/* ── FOOTER ── */
+.footer{background:var(--surface);border-top:1px solid var(--border);padding:5rem 2rem 0}
+.footer-grid{
+  max-width:1240px;margin:0 auto;
+  display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;
+  gap:3rem;padding-bottom:4rem;
+}
+.footer-brand h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);margin-bottom:1rem;letter-spacing:.5px}
+.footer-brand p{color:var(--muted);font-size:.84rem;line-height:1.8;margin-bottom:1.8rem}
+.social-icons{display:flex;gap:.7rem}
+.social-icons a{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted);display:flex;align-items:center;justify-content:center;
+  font-size:.88rem;transition:all .3s;
+}
+.social-icons a:hover{background:var(--gold);border-color:var(--gold);color:#07090f;transform:translateY(-3px)}
+.footer-links h4,.footer-contact h4{
+  font-size:.72rem;text-transform:uppercase;letter-spacing:3px;
+  color:var(--text);margin-bottom:1.5rem;
+}
+.footer-links ul{list-style:none}
+.footer-links ul li{margin-bottom:.8rem}
+.footer-links ul li a{font-size:.84rem;color:var(--muted);transition:color .3s}
+.footer-links ul li a:hover{color:var(--gold)}
+.footer-contact p{
+  font-size:.84rem;color:var(--muted);margin-bottom:.8rem;
+  display:flex;align-items:flex-start;gap:.7rem;line-height:1.6;
+}
+.footer-contact i{color:var(--gold);margin-top:.15rem;flex-shrink:0}
+.footer-bottom{
+  border-top:1px solid var(--border);padding:1.8rem 0;
+  text-align:center;max-width:1240px;margin:0 auto;
+}
+.footer-bottom p{font-size:.78rem;color:var(--muted)}
+ 
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .admin-sidebar{transform:translateX(-100%)}
+  .admin-sidebar.open{transform:translateX(0)}
+  .admin-main{margin-left:0}
+  .sidebar-toggle{display:block}
+  .about-grid{grid-template-columns:1fr}
+  .about-image{display:none}
+}
+@media(max-width:768px){
+  .navbar{padding:1rem 1.5rem}
+  .navbar.scrolled{padding:.8rem 1.5rem}
+  .nav-links{
+    position:fixed;top:0;right:0;bottom:0;width:280px;
+    background:var(--surface);flex-direction:column;align-items:flex-start;
+    padding:5rem 2rem 2rem;gap:1rem;z-index:999;
+    transform:translateX(100%);transition:transform .35s;border-left:1px solid var(--border);
+  }
+  .nav-links.open{transform:translateX(0)}
+  .hamburger{display:flex;z-index:1000}
+  .slide-content{padding:0 2rem}
+  .slider-dots{left:2rem;bottom:2rem}
+  .scroll-indicator{display:none}
+  .search-card{flex-direction:column;padding:1.5rem}
+  .search-field{width:100%}
+  .stats-bar{border-radius:0}
+  .stat{border-right:none;border-bottom:1px solid var(--border)}
+  .trips-grid{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr}
+  .booking-form .form-row{flex-direction:column}
+  .footer-grid{grid-template-columns:1fr}
+  .admin-topbar{padding:1rem 1.2rem}
+  .admin-tab{padding:1.2rem 1rem}
+}
+@media(max-width:480px){
+  .section-wrap{padding:3.5rem 1.2rem}
+  .auth-container{padding:2rem 1.5rem}
+  .auth-form .form-row{flex-direction:column}
+  .modal{padding:2rem 1.5rem}
+}
+ 
+/* ── ENTRANCE ANIMATIONS ── */
+@keyframes cardEntrance{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:none}
+}
+.trip-card{animation:cardEntrance .5s ease both}
+.trip-card:nth-child(2){animation-delay:.08s}
+.trip-card:nth-child(3){animation-delay:.16s}
+.trip-card:nth-child(4){animation-delay:.24s}
+ 
+/* ── AMBIENT GLOW ── */
+.ambient-glow{
+  position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(212,168,83,.08),transparent 70%);
+  pointer-events:none;top:-200px;left:-100px;
+}
+</style>
+</head>
+<body>
+ 
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+ 
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-brand">
+    <span class="brand-star">✦</span>
+    <span>Voyageur</span>
+  </div>
+  <ul class="nav-links" id="navLinks">
+    <li><a class="nav-link active" onclick="showPage('home')">Home</a></li>
+    <li><a class="nav-link" onclick="showPage('trips')">Trips</a></li>
+    <li><a class="nav-link" onclick="showPage('about')">About</a></li>
+    <li><a class="nav-link" onclick="showPage('contact')">Contact</a></li>
+    <li><a class="nav-link btn-nav" onclick="showPage('login')">Login</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+ 
+<!-- ========== HOME ========== -->
+<section class="page active" id="page-home">
+ 
+  <!-- Hero -->
+  <div class="hero" id="hero">
+    <div class="slider-track" id="sliderTrack">
+      <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600')">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <p class="slide-tag">Discover the World</p>
+          <h1>Where Every <em>Journey</em><br>Becomes a Story</h1>
+          <p class="slide-sub">Curated travel experiences across 50+ destinations</p>
+          <button class="btn-hero" onclick="showPage('trips')"><span>Explore Trips &nbsp;→</span></button>
+        </div>
+      </div>
+      <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600')">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <p class="slide-tag">Adventure Awaits</p>
+          <h1>Beyond the <em>Horizon</em><br>Awaits Wonder</h1>
+          <p class="slide-sub">Trek through mountains, sail across oceans</p>
+          <button class="btn-hero" onclick="showPage('trips')"><span>Explore Trips &nbsp;→</span></button>
+        </div>
+      </div>
+      <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1600')">
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <p class="slide-tag">Luxury Escapes</p>
+          <h1>Live Boldly,<br><em>Travel</em> Beautifully</h1>
+          <p class="slide-sub">Premium packages for the discerning traveler</p>
+          <button class="btn-hero" onclick="showPage('trips')"><span>Explore Trips &nbsp;→</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="slider-dots" id="sliderDots"></div>
+    <button class="slider-arrow left" onclick="changeSlide(-1)">&#8249;</button>
+    <button class="slider-arrow right" onclick="changeSlide(1)">&#8250;</button>
+    <div class="scroll-indicator">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </div>
+ 
+  <!-- Search -->
+  <div class="search-section">
+    <div class="search-card">
+      <div class="search-field">
+        <label><i class="fas fa-map-marker-alt"></i> Destination</label>
+        <input type="text" placeholder="Where to?" id="searchDest"/>
+      </div>
+      <div class="search-field">
+        <label><i class="fas fa-calendar"></i> Travel Date</label>
+        <input type="date" id="searchDate"/>
+      </div>
+      <div class="search-field">
+        <label><i class="fas fa-users"></i> Persons</label>
+        <input type="number" placeholder="2" min="1" id="searchPersons"/>
+      </div>
+      <button class="btn-search" onclick="handleSearch()">
+        <i class="fas fa-search"></i>&nbsp; Search
+      </button>
+    </div>
+  </div>
+ 
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Destinations</span></div>
+    <div class="stat"><span class="stat-num">12K+</span><span class="stat-label">Happy Travelers</span></div>
+    <div class="stat"><span class="stat-num">98%</span><span class="stat-label">Satisfaction</span></div>
+    <div class="stat"><span class="stat-num">15+</span><span class="stat-label">Years Experience</span></div>
+  </div>
+ 
+  <!-- Featured -->
+  <div class="section-wrap">
+    <div class="section-header">
+      <span class="section-tag">Hand-picked for you</span>
+      <h2>Featured <em>Destinations</em></h2>
+    </div>
+    <div class="trips-grid" id="featuredGrid"></div>
+    <div class="center-btn">
+      <button class="btn-outline" onclick="showPage('trips')">View All Destinations</button>
+    </div>
+  </div>
+ 
+  <!-- Testimonials -->
+  <div class="testimonials-section">
+    <div class="section-header light" style="position:relative;z-index:2">
+      <span class="section-tag">What travelers say</span>
+      <h2>Stories & <em>Experiences</em></h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"Voyageur turned our dream vacation into reality. Every detail was perfectly arranged. The Bali trip was absolutely magical!"</p>
+        <div class="reviewer"><img src="https://i.pravatar.cc/60?img=1" alt=""/><div><strong>Priya Sharma</strong><span>Mumbai, India</span></div></div>
+      </div>
+      <div class="testimonial-card featured">
+        <div class="stars">★★★★★</div>
+        <p>"The Swiss Alps package was beyond our expectations. Professional guides, luxurious stays, and breathtaking views. Truly 10/10!"</p>
+        <div class="reviewer"><img src="https://i.pravatar.cc/60?img=3" alt=""/><div><strong>Arjun Mehta</strong><span>Delhi, India</span></div></div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"The Maldives honeymoon package was extraordinary. Every resort, every activity was thoughtfully curated. Simply unforgettable."</p>
+        <div class="reviewer"><img src="https://i.pravatar.cc/60?img=5" alt=""/><div><strong>Sneha & Rohan</strong><span>Bangalore, India</span></div></div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>✦ Voyageur</h3>
+        <p>Your trusted partner for extraordinary travel experiences across the globe. Where every journey becomes a memory.</p>
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Navigate</h4>
+        <ul>
+          <li><a onclick="showPage('home')">Home</a></li>
+          <li><a onclick="showPage('trips')">Destinations</a></li>
+          <li><a onclick="showPage('about')">About Us</a></li>
+          <li><a onclick="showPage('contact')">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Top Picks</h4>
+        <ul>
+          <li><a href="#">Bali, Indonesia</a></li>
+          <li><a href="#">Swiss Alps</a></li>
+          <li><a href="#">Santorini, Greece</a></li>
+          <li><a href="#">Maldives</a></li>
+        </ul>
+      </div>
+      <div class="footer-contact">
+        <h4>Contact</h4>
+        <p><i class="fas fa-map-marker-alt"></i>42 Marine Drive, Mumbai 400001</p>
+        <p><i class="fas fa-phone"></i>+91 98765 43210</p>
+        <p><i class="fas fa-envelope"></i>hello@voyageur.in</p>
+        <p><i class="fas fa-clock"></i>Mon–Sat: 9AM – 7PM IST</p>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 Voyageur Trip Arrangement System. All rights reserved.</p></div>
+  </footer>
+</section>
+ 
+<!-- ========== TRIPS ========== -->
+<section class="page" id="page-trips">
+  <div class="page-hero" style="background-image:url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600')">
+    <div class="page-hero-overlay"></div>
+    <h1>Explore <em>Destinations</em></h1>
+    <p>Handpicked trips for every kind of traveler</p>
+    <div class="page-hero-line"></div>
+  </div>
+  <div class="section-wrap">
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterTrips('all',this)">All</button>
+      <button class="filter-btn" onclick="filterTrips('beach',this)">Beach</button>
+      <button class="filter-btn" onclick="filterTrips('mountain',this)">Mountain</button>
+      <button class="filter-btn" onclick="filterTrips('cultural',this)">Cultural</button>
+      <button class="filter-btn" onclick="filterTrips('luxury',this)">Luxury</button>
+    </div>
+    <div class="trips-grid" id="tripsGrid"></div>
+  </div>
+  <footer class="footer"><div class="footer-bottom"><p>© 2025 Voyageur. All rights reserved.</p></div></footer>
+</section>
+ 
+<!-- ========== BOOKING MODAL ========== -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBooking()">✕</button>
+    <h2>Book Your <em>Trip</em></h2>
+    <p class="modal-dest" id="modalDest">Destination: —</p>
+    <form class="booking-form" id="bookingForm" onsubmit="submitBooking(event)">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name</label><input type="text" id="bName" placeholder="Your full name" required/></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="bEmail" placeholder="your@email.com" required/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="bPhone" placeholder="+91 98765 43210" required/></div>
+        <div class="form-group"><label>Destination</label><input type="text" id="bDest" placeholder="Destination" required/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Persons</label><input type="number" id="bPersons" min="1" placeholder="2" required/></div>
+        <div class="form-group"><label>Travel Date</label><input type="date" id="bDate" required/></div>
+      </div>
+      <button type="submit" class="btn-primary full">Confirm Booking</button>
+    </form>
+  </div>
+</div>
+ 
+<!-- Success Popup -->
+<div class="success-popup" id="successPopup">
+  <div class="success-icon">✓</div>
+  <h3>Booking <em>Confirmed!</em></h3>
+  <p>We'll send your itinerary to your email shortly. Get ready to explore the world!</p>
+  <button onclick="closeSuccess()" class="btn-primary">Wonderful!</button>
+</div>
+ 
+<!-- ========== ABOUT ========== -->
+<section class="page" id="page-about">
+  <div class="page-hero" style="background-image:url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600')">
+    <div class="page-hero-overlay"></div>
+    <h1>About <em>Voyageur</em></h1>
+    <p>15 years of crafting extraordinary journeys</p>
+    <div class="page-hero-line"></div>
+  </div>
+  <div class="about-section section-wrap">
+    <div class="about-grid">
+      <div class="about-text">
+        <span class="section-tag">Our Story</span>
+        <h2>Passionate About <em>Travel</em></h2>
+        <p>Founded in 2010, Voyageur was born from a simple belief: every journey should be extraordinary. We curate bespoke travel experiences that go beyond the ordinary — connecting travelers with the soul of each destination.</p>
+        <p>From the snow-capped Alps to the turquoise lagoons of the Maldives, we craft every itinerary with meticulous attention to detail, ensuring your journey is seamless, immersive, and unforgettable.</p>
+        <div class="about-features">
+          <div class="about-feat"><i class="fas fa-shield-alt"></i><span>100% Secure Bookings</span></div>
+          <div class="about-feat"><i class="fas fa-headset"></i><span>24/7 Customer Support</span></div>
+          <div class="about-feat"><i class="fas fa-award"></i><span>Award-Winning Service</span></div>
+          <div class="about-feat"><i class="fas fa-globe"></i><span>50+ Countries Covered</span></div>
+        </div>
+      </div>
+      <div class="about-image">
+        <img src="https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=600" alt="Travel"/>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><div class="footer-bottom"><p>© 2025 Voyageur. All rights reserved.</p></div></footer>
+</section>
+ 
+<!-- ========== CONTACT ========== -->
+<section class="page" id="page-contact">
+  <div class="page-hero" style="background-image:url('https://images.unsplash.com/photo-1527631746610-bca00a040d60?w=1600')">
+    <div class="page-hero-overlay"></div>
+    <h1>Get in <em>Touch</em></h1>
+    <p>We'd love to help plan your next adventure</p>
+    <div class="page-hero-line"></div>
+  </div>
+  <div class="section-wrap">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h2>Let's <em>Connect</em></h2>
+        <p>Have questions? Our travel experts are ready to assist you in planning your dream vacation.</p>
+        <div class="contact-item"><div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div><div><strong>Our Office</strong><p>42 Marine Drive, Mumbai 400001, India</p></div></div>
+        <div class="contact-item"><div class="contact-icon"><i class="fas fa-phone"></i></div><div><strong>Phone</strong><p>+91 98765 43210</p></div></div>
+        <div class="contact-item"><div class="contact-icon"><i class="fas fa-envelope"></i></div><div><strong>Email</strong><p>hello@voyageur.in</p></div></div>
+        <div class="contact-item"><div class="contact-icon"><i class="fas fa-clock"></i></div><div><strong>Hours</strong><p>Mon–Sat: 9AM – 7PM IST</p></div></div>
+      </div>
+      <form class="contact-form" id="contactForm" onsubmit="submitContact(event)">
+        <h3>Send Us a <em>Message</em></h3>
+        <div class="form-group"><label>Your Name</label><input type="text" id="cName" placeholder="Full name" required/></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="cEmail" placeholder="your@email.com" required/></div>
+        <div class="form-group"><label>Subject</label><input type="text" id="cSubject" placeholder="Trip inquiry..." required/></div>
+        <div class="form-group"><label>Message</label><textarea id="cMessage" rows="5" placeholder="Tell us about your dream trip..." required></textarea></div>
+        <button type="submit" class="btn-primary full">Send Message &nbsp;<i class="fas fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+  <footer class="footer"><div class="footer-bottom"><p>© 2025 Voyageur. All rights reserved.</p></div></footer>
+</section>
+ 
+<!-- ========== LOGIN ========== -->
+<section class="page" id="page-login">
+  <div class="auth-bg">
+    <div class="auth-container">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="loginTab" onclick="switchAuth('login')">Login</button>
+        <button class="auth-tab" id="registerTab" onclick="switchAuth('register')">Register</button>
+      </div>
+      <div class="auth-form active" id="loginForm">
+        <div class="auth-logo">✦ Voyageur</div>
+        <h2>Welcome <em>Back</em></h2>
+        <p class="auth-sub">Sign in to manage your trips</p>
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group"><label>Email Address</label><div class="input-icon"><i class="fas fa-envelope"></i><input type="email" id="lEmail" placeholder="your@email.com" required/></div></div>
+          <div class="form-group"><label>Password</label><div class="input-icon"><i class="fas fa-lock"></i><input type="password" id="lPass" placeholder="••••••••" required/></div></div>
+          <div class="form-check"><label><input type="checkbox"/> Remember me</label><a href="#">Forgot password?</a></div>
+          <button type="submit" class="btn-primary full">Sign In</button>
+          <p class="auth-switch">Don't have an account? <a onclick="switchAuth('register')">Register</a></p>
+        </form>
+      </div>
+      <div class="auth-form" id="registerForm">
+        <div class="auth-logo">✦ Voyageur</div>
+        <h2>Join <em>Voyageur</em></h2>
+        <p class="auth-sub">Create your account today</p>
+        <form onsubmit="handleRegister(event)">
+          <div class="form-row">
+            <div class="form-group"><label>First Name</label><div class="input-icon"><i class="fas fa-user"></i><input type="text" id="rFirst" placeholder="First name" required/></div></div>
+            <div class="form-group"><label>Last Name</label><div class="input-icon"><i class="fas fa-user"></i><input type="text" id="rLast" placeholder="Last name" required/></div></div>
+          </div>
+          <div class="form-group"><label>Email Address</label><div class="input-icon"><i class="fas fa-envelope"></i><input type="email" id="rEmail" placeholder="your@email.com" required/></div></div>
+          <div class="form-group"><label>Phone Number</label><div class="input-icon"><i class="fas fa-phone"></i><input type="tel" id="rPhone" placeholder="+91 98765 43210" required/></div></div>
+          <div class="form-group"><label>Password</label><div class="input-icon"><i class="fas fa-lock"></i><input type="password" id="rPass" placeholder="Min 8 characters" required/></div></div>
+          <div class="form-group"><label>Confirm Password</label><div class="input-icon"><i class="fas fa-lock"></i><input type="password" id="rConfirm" placeholder="Repeat password" required/></div></div>
+          <div class="form-check"><label><input type="checkbox" id="rTerms" required/> I agree to the <a href="#">Terms & Conditions</a></label></div>
+          <button type="submit" class="btn-primary full">Create Account</button>
+          <p class="auth-switch">Already have an account? <a onclick="switchAuth('login')">Login</a></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ========== ADMIN ========== -->
+<section class="page" id="page-admin">
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="admin-brand">✦ Voyageur <span>Admin</span></div>
+      <nav class="admin-nav">
+        <a class="admin-link active" onclick="adminTab('dashboard',this)"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a class="admin-link" onclick="adminTab('trips',this)"><i class="fas fa-map-marked-alt"></i> Trips</a>
+        <a class="admin-link" onclick="adminTab('bookings',this)"><i class="fas fa-calendar-check"></i> Bookings</a>
+        <a class="admin-link" onclick="adminTab('users',this)"><i class="fas fa-users"></i> Users</a>
+        <a class="admin-link" onclick="adminTab('reports',this)"><i class="fas fa-chart-bar"></i> Reports</a>
+        <a class="admin-link" onclick="adminTab('settings',this)"><i class="fas fa-cog"></i> Settings</a>
+      </nav>
+      <div class="admin-sidebar-footer">
+        <img src="https://i.pravatar.cc/40?img=8" alt=""/>
+        <div><strong>Admin User</strong><span>Super Admin</span></div>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <h2 id="adminPageTitle">Dashboard</h2>
+        <div class="admin-actions">
+          <button class="btn-icon"><i class="fas fa-bell"></i><span class="badge">3</span></button>
+          <button class="btn-icon"><i class="fas fa-search"></i></button>
+          <button class="btn-primary small" onclick="showPage('home')">← Back to Site</button>
+        </div>
+      </div>
+      <div class="admin-tab active" id="tab-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card teal"><i class="fas fa-map-marked-alt"></i><div><span class="s-num">24</span><span class="s-label">Active Trips</span></div><span class="s-trend up">+3 this month</span></div>
+          <div class="stat-card amber"><i class="fas fa-calendar-check"></i><div><span class="s-num">187</span><span class="s-label">Total Bookings</span></div><span class="s-trend up">+12 this week</span></div>
+          <div class="stat-card rose"><i class="fas fa-users"></i><div><span class="s-num">1,240</span><span class="s-label">Registered Users</span></div><span class="s-trend up">+28 this week</span></div>
+          <div class="stat-card indigo"><i class="fas fa-rupee-sign"></i><div><span class="s-num">₹48.2L</span><span class="s-label">Revenue</span></div><span class="s-trend up">+8.4% vs last month</span></div>
+        </div>
+        <div class="admin-card">
+          <div class="card-header"><h3>Recent Bookings</h3><button class="btn-outline small">View All</button></div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Customer</th><th>Destination</th><th>Date</th><th>Persons</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>001</td><td>Priya Sharma</td><td>Bali, Indonesia</td><td>2025-08-12</td><td>2</td><td>₹1,20,000</td><td><span class="badge-status confirmed">Confirmed</span></td></tr>
+                <tr><td>002</td><td>Rohan Mehta</td><td>Swiss Alps</td><td>2025-09-03</td><td>4</td><td>₹3,60,000</td><td><span class="badge-status pending">Pending</span></td></tr>
+                <tr><td>003</td><td>Sneha Patel</td><td>Santorini</td><td>2025-07-28</td><td>2</td><td>₹1,80,000</td><td><span class="badge-status confirmed">Confirmed</span></td></tr>
+                <tr><td>004</td><td>Arjun Nair</td><td>Maldives</td><td>2025-10-15</td><td>2</td><td>₹2,40,000</td><td><span class="badge-status cancelled">Cancelled</span></td></tr>
+                <tr><td>005</td><td>Kavitha R.</td><td>Paris, France</td><td>2025-11-02</td><td>3</td><td>₹2,70,000</td><td><span class="badge-status pending">Pending</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="admin-tab" id="tab-trips">
+        <div class="admin-card">
+          <div class="card-header"><h3>Trip Management</h3><button class="btn-primary small">+ Add Trip</button></div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Trip Name</th><th>Category</th><th>Duration</th><th>Price</th><th>Slots</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="adminTripsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="admin-tab" id="tab-bookings"><div class="bookings-cards" id="adminBookingCards"></div></div>
+      <div class="admin-tab" id="tab-users">
+        <div class="admin-card">
+          <div class="card-header"><h3>User Management</h3></div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Trips</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Priya Sharma</td><td>priya@email.com</td><td>+91 98765 00001</td><td>Jan 2024</td><td>3</td><td><span class="badge-status confirmed">Active</span></td></tr>
+                <tr><td>2</td><td>Rohan Mehta</td><td>rohan@email.com</td><td>+91 98765 00002</td><td>Mar 2024</td><td>1</td><td><span class="badge-status confirmed">Active</span></td></tr>
+                <tr><td>3</td><td>Arjun Nair</td><td>arjun@email.com</td><td>+91 98765 00003</td><td>Apr 2024</td><td>2</td><td><span class="badge-status pending">Inactive</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="admin-tab" id="tab-reports"><div class="admin-card"><div class="card-header"><h3>Reports & Analytics</h3></div><p style="padding:2rem;color:var(--muted)">Detailed charts and reports appear here.</p></div></div>
+      <div class="admin-tab" id="tab-settings"><div class="admin-card"><div class="card-header"><h3>System Settings</h3></div><p style="padding:2rem;color:var(--muted)">Site configuration and preferences.</p></div></div>
+    </main>
+  </div>
+</section>
+ 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+ 
+<script>
+/* ── CURSOR ── */
+const cursor=document.getElementById('cursor');
+const ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cursor.style.left=mx+'px';cursor.style.top=my+'px';
+});
+function animateRing(){
+  rx+=(mx-rx)*.13;ry+=(my-ry)*.13;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+document.querySelectorAll('button,a,[onclick]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    cursor.style.width='18px';cursor.style.height='18px';
+    ring.style.width='50px';ring.style.height='50px';
+    ring.style.borderColor='rgba(212,168,83,.6)';
+  });
+  el.addEventListener('mouseleave',()=>{
+    cursor.style.width='10px';cursor.style.height='10px';
+    ring.style.width='36px';ring.style.height='36px';
+    ring.style.borderColor='rgba(212,168,83,.4)';
+  });
+});
+ 
+/* ── TRIP DATA ── */
+const trips=[
+  {id:1,name:"Bali, Indonesia",category:"beach",price:"₹60,000",duration:"7 Days / 6 Nights",desc:"Immerse yourself in Bali's lush rice terraces, sacred temples, and crystalline beaches. A perfect blend of culture and relaxation.",img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600",rating:"4.9 ★ (218 reviews)",badge:"Best Seller"},
+  {id:2,name:"Swiss Alps",category:"mountain",price:"₹90,000",duration:"10 Days / 9 Nights",desc:"Breathtaking Alpine scenery, snow-capped peaks, charming chalets, and world-class skiing. Switzerland at its finest.",img:"https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600",rating:"4.8 ★ (154 reviews)",badge:"Popular"},
+  {id:3,name:"Santorini, Greece",category:"luxury",price:"₹85,000",duration:"8 Days / 7 Nights",desc:"Iconic whitewashed villages, volcanic beaches, world-famous sunsets, and exceptional cuisine along the Aegean Sea.",img:"https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=600",rating:"4.9 ★ (301 reviews)",badge:"Luxury"},
+  {id:4,name:"Maldives",category:"beach",price:"₹1,20,000",duration:"6 Days / 5 Nights",desc:"Overwater bungalows, pristine turquoise lagoons, vibrant coral reefs, and the most romantic sunsets on earth.",img:"https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=600",rating:"5.0 ★ (189 reviews)",badge:"Honeymoon"},
+  {id:5,name:"Kyoto, Japan",category:"cultural",price:"₹75,000",duration:"9 Days / 8 Nights",desc:"Ancient temples, serene bamboo groves, traditional tea ceremonies, and the timeless beauty of Japan's old capital.",img:"https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600",rating:"4.8 ★ (276 reviews)",badge:"Cultural"},
+  {id:6,name:"Paris, France",category:"cultural",price:"₹95,000",duration:"7 Days / 6 Nights",desc:"The Eiffel Tower, Louvre masterpieces, charming cafés, and unmatched joie de vivre in the City of Light.",img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600",rating:"4.7 ★ (412 reviews)",badge:"Classic"},
+  {id:7,name:"Patagonia, Argentina",category:"mountain",price:"₹1,10,000",duration:"12 Days / 11 Nights",desc:"Dramatic glaciers, soaring granite peaks, pristine wilderness, and one of the most epic trekking routes on earth.",img:"https://images.unsplash.com/photo-1591017403286-fd8493524e1e?w=600",rating:"4.9 ★ (98 reviews)",badge:"Adventure"},
+  {id:8,name:"Dubai, UAE",category:"luxury",price:"₹80,000",duration:"5 Days / 4 Nights",desc:"Futuristic skylines, desert safaris, world's tallest tower, and an unparalleled luxury shopping experience.",img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600",rating:"4.6 ★ (332 reviews)",badge:"Luxury"},
+];
+ 
+/* ── PAGE NAV ── */
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('page-'+name);
+  if(t)t.classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll(`.nav-link[onclick*="'${name}'"]`).forEach(l=>l.classList.add('active'));
+  document.getElementById('navLinks').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='trips')renderAllTrips('all');
+  if(name==='home')renderFeaturedTrips();
+  if(name==='admin')initAdmin();
+}
+ 
+function toggleMenu(){document.getElementById('navLinks').classList.toggle('open')}
+ 
+window.addEventListener('scroll',()=>{
+  const nav=document.getElementById('navbar');
+  nav.classList.toggle('scrolled',window.scrollY>60);
+});
+ 
+/* ── SLIDER ── */
+let cur=0;const tot=3;
+function initSlider(){
+  const d=document.getElementById('sliderDots');
+  if(!d)return;d.innerHTML='';
+  for(let i=0;i<tot;i++){
+    const dot=document.createElement('div');
+    dot.className='dot'+(i===0?' active':'');
+    dot.onclick=()=>goToSlide(i);
+    d.appendChild(dot);
+  }
+}
+function goToSlide(i){
+  cur=i;
+  const t=document.getElementById('sliderTrack');
+  if(t)t.style.transform=`translateX(-${cur*100}%)`;
+  document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',j===cur));
+}
+function changeSlide(dir){goToSlide((cur+dir+tot)%tot)}
+setInterval(()=>changeSlide(1),5500);
+ 
+/* ── TRIP CARDS ── */
+function createTripCard(trip){
+  return`<div class="trip-card" data-category="${trip.category}">
+    <div class="trip-img">
+      <img src="${trip.img}" alt="${trip.name}" loading="lazy"/>
+      <span class="trip-badge">${trip.badge}</span>
+      <div class="trip-price-overlay">${trip.price}</div>
+    </div>
+    <div class="trip-body">
+      <h3 class="trip-name">${trip.name}</h3>
+      <p class="trip-duration"><i class="fas fa-clock"></i>${trip.duration}</p>
+      <p class="trip-desc">${trip.desc}</p>
+      <div class="trip-footer">
+        <span class="trip-rating">${trip.rating}</span>
+        <button class="btn-book" onclick="openBooking('${trip.name}')"><span>Book Now</span></button>
+      </div>
+    </div>
+  </div>`;
+}
+ 
+function renderFeaturedTrips(){
+  const c=document.getElementById('featuredGrid');
+  if(!c||c.children.length>0)return;
+  c.innerHTML=trips.slice(0,4).map(createTripCard).join('');
+}
+function renderAllTrips(cat='all'){
+  const c=document.getElementById('tripsGrid');
+  if(!c)return;
+  const f=cat==='all'?trips:trips.filter(t=>t.category===cat);
+  c.innerHTML=f.map(createTripCard).join('');
+}
+function filterTrips(cat,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAllTrips(cat);
+}
+ 
+/* ── SEARCH ── */
+function handleSearch(){
+  const dest=document.getElementById('searchDest').value.trim();
+  if(!dest){showToast('Please enter a destination to search.');return}
+  showPage('trips');
+  setTimeout(()=>{
+    const q=dest.toLowerCase();
+    const c=document.getElementById('tripsGrid');
+    const f=trips.filter(t=>t.name.toLowerCase().includes(q)||t.category.toLowerCase().includes(q));
+    if(!f.length){
+      c.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:4rem;">
+        <i class="fas fa-search" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:1rem"></i>
+        No trips found for "<strong>${dest}</strong>". Try a different keyword.
+      </div>`;
+    }else{c.innerHTML=f.map(createTripCard).join('')}
+    showToast(`Found ${f.length} trip(s) for "${dest}"`);
+  },300);
+}
+ 
+/* ── BOOKING ── */
+function openBooking(dest){
+  document.getElementById('modalDest').textContent='Booking: '+dest;
+  document.getElementById('bDest').value=dest;
+  document.getElementById('bookingModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeBooking(){
+  document.getElementById('bookingModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function submitBooking(e){
+  e.preventDefault();
+  const name=document.getElementById('bName').value.trim();
+  const email=document.getElementById('bEmail').value.trim();
+  const phone=document.getElementById('bPhone').value.trim();
+  const date=document.getElementById('bDate').value;
+  const persons=parseInt(document.getElementById('bPersons').value);
+  if(!name||name.length<2){showToast('Please enter a valid name.');return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('Please enter a valid email address.');return}
+  if(!/^\+?[\d\s\-]{8,15}$/.test(phone)){showToast('Please enter a valid phone number.');return}
+  if(!date){showToast('Please select a travel date.');return}
+  if(!persons||persons<1){showToast('Number of persons must be at least 1.');return}
+  closeBooking();
+  document.getElementById('bookingForm').reset();
+  showSuccessPopup();
+  addBookingToAdmin({name,email,destination:document.getElementById('bDest').value,date,persons});
+}
+function showSuccessPopup(){document.getElementById('successPopup').classList.add('show')}
+function closeSuccess(){document.getElementById('successPopup').classList.remove('show')}
+ 
+/* ── CONTACT ── */
+function submitContact(e){
+  e.preventDefault();
+  const name=document.getElementById('cName').value.trim();
+  const email=document.getElementById('cEmail').value.trim();
+  const subject=document.getElementById('cSubject').value.trim();
+  const message=document.getElementById('cMessage').value.trim();
+  if(!name||name.length<2){showToast('Please enter your name.');return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('Please enter a valid email.');return}
+  if(!subject){showToast('Please enter a subject.');return}
+  if(!message||message.length<10){showToast('Message must be at least 10 characters.');return}
+  document.getElementById('contactForm').reset();
+  showToast("✓ Message sent! We'll get back to you within 24 hours.");
+}
+ 
+/* ── AUTH ── */
+function switchAuth(tab){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
+  document.getElementById(tab+'Tab').classList.add('active');
+  document.getElementById(tab+'Form').classList.add('active');
+}
+function handleLogin(e){
+  e.preventDefault();
+  const email=document.getElementById('lEmail').value.trim();
+  const pass=document.getElementById('lPass').value;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('Please enter a valid email address.');return}
+  if(pass.length<6){showToast('Password must be at least 6 characters.');return}
+  if(email==='admin@voyageur.in'&&pass==='admin123'){
+    showToast('✓ Welcome back, Admin!');
+    setTimeout(()=>showPage('admin'),800);return;
+  }
+  showToast('✓ Login successful! Welcome back.');
+  setTimeout(()=>showPage('home'),800);
+}
+function handleRegister(e){
+  e.preventDefault();
+  const first=document.getElementById('rFirst').value.trim();
+  const last=document.getElementById('rLast').value.trim();
+  const email=document.getElementById('rEmail').value.trim();
+  const phone=document.getElementById('rPhone').value.trim();
+  const pass=document.getElementById('rPass').value;
+  const confirm=document.getElementById('rConfirm').value;
+  const terms=document.getElementById('rTerms').checked;
+  if(!first||!last){showToast('Please enter your full name.');return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('Please enter a valid email.');return}
+  if(!/^\+?[\d\s\-]{8,15}$/.test(phone)){showToast('Please enter a valid phone number.');return}
+  if(pass.length<8){showToast('Password must be at least 8 characters.');return}
+  if(pass!==confirm){showToast('Passwords do not match.');return}
+  if(!terms){showToast('Please accept the Terms & Conditions.');return}
+  showToast(`✓ Account created for ${first}! Welcome to Voyageur.`);
+  setTimeout(()=>switchAuth('login'),1000);
+}
+ 
+/* ── ADMIN ── */
+const adminBookings=[
+  {id:'001',name:'Priya Sharma',dest:'Bali, Indonesia',date:'2025-08-12',persons:2,amount:'₹1,20,000',status:'confirmed'},
+  {id:'002',name:'Rohan Mehta',dest:'Swiss Alps',date:'2025-09-03',persons:4,amount:'₹3,60,000',status:'pending'},
+  {id:'003',name:'Sneha Patel',dest:'Santorini',date:'2025-07-28',persons:2,amount:'₹1,80,000',status:'confirmed'},
+  {id:'004',name:'Arjun Nair',dest:'Maldives',date:'2025-10-15',persons:2,amount:'₹2,40,000',status:'cancelled'},
+  {id:'005',name:'Kavitha Reddy',dest:'Paris, France',date:'2025-11-02',persons:3,amount:'₹2,70,000',status:'pending'},
+];
+function addBookingToAdmin(b){
+  const newId=String(adminBookings.length+1).padStart(3,'0');
+  adminBookings.push({id:newId,name:b.name,dest:b.destination,date:b.date,persons:b.persons,amount:'—',status:'pending'});
+}
+function initAdmin(){
+  const tbody=document.getElementById('adminTripsTable');
+  if(tbody&&tbody.children.length===0){
+    trips.forEach((t,i)=>{
+      tbody.innerHTML+=`<tr>
+        <td>${i+1}</td><td>${t.name}</td>
+        <td style="text-transform:capitalize">${t.category}</td>
+        <td>${t.duration}</td><td>${t.price}</td>
+        <td>${Math.floor(Math.random()*20)+5}</td>
+        <td><span class="badge-status confirmed">Active</span></td>
+        <td>
+          <button class="btn-outline small" onclick="showToast('Edit: ${t.name}')">Edit</button>
+          <button class="btn-outline small" style="margin-left:.4rem;border-color:var(--coral);color:var(--coral)" onclick="showToast('Deleted: ${t.name}')">Del</button>
+        </td>
+      </tr>`;
+    });
+  }
+  const cc=document.getElementById('adminBookingCards');
+  if(cc&&cc.children.length===0){
+    adminBookings.forEach(b=>{
+      cc.innerHTML+=`<div class="booking-card">
+        <div class="booking-card-header">
+          <div><div class="booking-id">#${b.id}</div><div class="booking-name">${b.name}</div><div class="booking-dest"><i class="fas fa-map-marker-alt"></i> ${b.dest}</div></div>
+          <span class="badge-status ${b.status}">${b.status}</span>
+        </div>
+        <div class="booking-info">
+          <span><i class="fas fa-calendar"></i>${b.date}</span>
+          <span><i class="fas fa-users"></i>${b.persons} persons</span>
+          <span><i class="fas fa-rupee-sign"></i>${b.amount}</span>
+        </div>
+      </div>`;
+    });
+  }
+}
+function adminTab(tab,el){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('adminPageTitle').textContent=tab.charAt(0).toUpperCase()+tab.slice(1);
+  return false;
+}
+function toggleSidebar(){document.getElementById('adminSidebar').classList.toggle('open')}
+ 
+/* ── TOAST ── */
+let toastTimer;
+function showToast(msg,dur=3500){
+  clearTimeout(toastTimer);
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  toastTimer=setTimeout(()=>t.classList.remove('show'),dur);
+}
+ 
+/* ── MODAL OVERLAY CLOSE ── */
+document.getElementById('bookingModal').addEventListener('click',function(e){if(e.target===this)closeBooking()});
+ 
+/* ── KEYBOARD ── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeBooking();
+    document.getElementById('successPopup').classList.remove('show');
+    document.getElementById('navLinks').classList.remove('open');
+  }
+  if(document.getElementById('page-home').classList.contains('active')){
+    if(e.key==='ArrowLeft')changeSlide(-1);
+    if(e.key==='ArrowRight')changeSlide(1);
+  }
+});
+ 
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  initSlider();
+  renderFeaturedTrips();
+  showPage('home');
+  console.log('%c✦ Voyageur','font-size:18px;color:#d4a853;font-weight:bold');
+  console.log('%cAdmin: admin@voyageur.in / admin123','color:#38c9b0');
+});
+</script>
+</body>
+</html>
